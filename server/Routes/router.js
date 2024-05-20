@@ -58,6 +58,7 @@ const getEntityAttributes = async (entityName) => {
   }
 };
 
+
 // Route to get specific entity data by ID
 router.get('/entities/:entityName/data/:id', async (req, res) => {
   const { entityName, id } = req.params;
@@ -204,13 +205,20 @@ router.put('/entities/:entityName/data/:id', async (req, res) => {
 
   // Create the SQL update string
   const updates = Object.keys(data).map(key => `${key} = ?`).join(', ');
-  const values = Object.values(data).map(value => typeof value === 'string' ? `'${value}'` : value);
+  const values = Object.keys(data).map(key => {
+    const value = data[key];
+    if (!isNaN(Date.parse(value))) {
+      // If the value is a date, format it to YYYY-MM-DD
+      return new Date(value).toISOString().split('T')[0];
+    }
+    return value;
+  });
   values.push(parseInt(id, 10));
 
-  const query = `UPDATE ${entityName} SET ${updates} WHERE id = ?`;
+  const query = `UPDATE ?? SET ${updates} WHERE id = ?`;
 
   try {
-    const [result] = await pool.query(query, values);
+    const [result] = await pool.query(query, [entityName, ...values]);
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: 'Data not found' });
     }

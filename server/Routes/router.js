@@ -32,7 +32,7 @@ const getDataType = (type) => {
     case 'string':
       return 'VARCHAR(255)';
     case 'number':
-      return 'INT';
+      return 'BIGINT';
     case 'date':
       return 'DATE';
     case 'image':
